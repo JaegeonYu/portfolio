@@ -11,6 +11,13 @@
 <style>
 body{margin:0;background:#F7F8F7}
 a{color:#15181C}a:hover{color:#1F6F5C}
+.badges{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:10px}
+.badge{display:flex;align-items:center;gap:12px;padding:10px 16px 10px 10px;background:#FFFFFF;border:1px solid #E3E5E3;border-radius:999px;color:#15181C;text-decoration:none}
+a.badge:hover{border-color:#1F6F5C;color:#15181C}
+.badge-icon{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#EEF1EF;color:#1F6F5C}
+.badge.main{border-color:#1F6F5C}.badge.main .badge-icon{background:#1F6F5C;color:#FFFFFF}
+.badge b{display:block;font-size:15px;line-height:1.3}
+.badge small{display:block;font-size:12.5px;line-height:1.4;color:#5B6168}
 </style>
 </head>
 <body>
@@ -23,7 +30,8 @@ a{color:#15181C}a:hover{color:#1F6F5C}
 <a href="#projects" style="padding: 10px 12px; text-decoration: none">프로젝트</a>
 <a href="#ops" style="padding: 10px 12px; text-decoration: none">운영 개선</a>
 <a href="#side" style="padding: 10px 12px; text-decoration: none">개인 프로젝트</a>
-<a href="#edu" style="padding: 10px 12px; text-decoration: none">학력·자격</a>
+<a href="#edu" style="padding: 10px 12px; text-decoration: none">학력</a>
+<a href="#badges" style="padding: 10px 12px; text-decoration: none">자격·활동</a>
 <a href="#contact" style="padding: 10px 12px; text-decoration: none">연락처</a>
 </div>
 </nav>
@@ -204,7 +212,7 @@ a{color:#15181C}a:hover{color:#1F6F5C}
 </section>
 
 <section id="edu" style="padding: 24px 0 88px; border-top: 1px solid #E3E5E3">
-<h2 style="margin: 56px 0 28px; font-size: 28px">학력·교육·자격</h2>
+<h2 style="margin: 56px 0 28px; font-size: 28px">학력·교육</h2>
 <div style="display: flex; flex-direction: column">
 <div style="display: flex; flex-wrap: wrap; gap: 8px 32px; padding: 20px 0; border-bottom: 1px solid #E3E5E3">
 <p style="flex: 0 1 200px; margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #5B6168">2023.07 – 2024.06 (1년)</p>
@@ -213,21 +221,22 @@ a{color:#15181C}a:hover{color:#1F6F5C}
 <p style="margin: 6px 0 0; color: #3D4349">Java 백엔드 과정 1년 수료</p>
 </div>
 </div>
-<div style="display: flex; flex-wrap: wrap; gap: 8px 32px; padding: 20px 0; border-bottom: 1px solid #E3E5E3">
+<div style="display: flex; flex-wrap: wrap; gap: 8px 32px; padding: 20px 0">
 <p style="flex: 0 1 200px; margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #5B6168">2017.03 – 2023.02</p>
 <div style="flex: 1 1 440px; min-width: 0">
 <h3 style="margin: 0; font-size: 18px">한밭대학교 컴퓨터공학과 졸업</h3>
 <p style="margin: 6px 0 0; color: #3D4349">졸업작품으로 지문 기반 본인인증 모바일 앱의 백엔드를 맡았습니다.</p>
 </div>
 </div>
-<div style="display: flex; flex-wrap: wrap; gap: 8px 32px; padding: 20px 0">
-<p style="flex: 0 1 200px; margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #5B6168">자격·어학</p>
-<ul style="flex: 1 1 440px; min-width: 0; margin: 0; padding: 0; list-style: none; color: #3D4349; display: flex; flex-direction: column; gap: 4px">
-<li>SQLP (2026.09) · SQLD (2024.09) · 정보처리기사 (2023.06)</li>
-<li>TOEIC Speaking IM1 (2026.04)</li>
-</ul>
 </div>
-</div>
+</section>
+
+<section id="badges" style="padding: 24px 0 88px; border-top: 1px solid #E3E5E3">
+<h2 style="margin: 56px 0 28px; font-size: 28px">자격·활동</h2>
+<h3 style="margin: 0 0 14px; font-size: 16px; color: #4A5056">자격증</h3>
+<ul id="badge-certs" class="badges"></ul>
+<h3 style="margin: 32px 0 14px; font-size: 16px; color: #4A5056">스터디·세션</h3>
+<ul id="badge-activities" class="badges"></ul>
 </section>
 
 <section id="skills" style="padding: 24px 0 88px; border-top: 1px solid #E3E5E3">
@@ -263,6 +272,35 @@ a{color:#15181C}a:hover{color:#1F6F5C}
 </footer>
 
 </div>
+<script src="data/badges.js"></script>
+<script>
+(function(){
+  var icons = {
+    certs: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"></circle><path d="M8.5 13.9 7 22l5-3 5 3-1.5-8.1"></path></svg>',
+    activities: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M17.5 14.6c2.2.4 3.6 2 4 4.4"></path></svg>'
+  };
+  var data = window.BADGES || {};
+  ['certs', 'activities'].forEach(function(kind){
+    var list = document.getElementById('badge-' + kind), items = data[kind] || [];
+    if (!list) return;
+    if (!items.length) { list.parentNode.removeChild(list.previousElementSibling); list.parentNode.removeChild(list); return; }
+    items.forEach(function(it){
+      var li = document.createElement('li');
+      var el = document.createElement(it.link ? 'a' : 'div');
+      if (it.link) { el.href = it.link; el.target = '_blank'; el.rel = 'noopener'; }
+      el.className = 'badge' + (it.main ? ' main' : '');
+      var icon = document.createElement('span');
+      icon.className = 'badge-icon'; icon.innerHTML = icons[kind];
+      var text = document.createElement('span'), b = document.createElement('b'), s = document.createElement('small');
+      b.textContent = it.name;
+      s.textContent = [it.role, it.by, it.date].filter(Boolean).join(' · ');
+      text.appendChild(b); text.appendChild(s);
+      el.appendChild(icon); el.appendChild(text);
+      li.appendChild(el); list.appendChild(li);
+    });
+  });
+})();
+</script>
 <script>
 (function(){
   var now = new Date(), cur = now.getFullYear() * 12 + now.getMonth();
