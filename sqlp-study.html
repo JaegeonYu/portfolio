@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="SQLP 스터디를 위해 만든 채점·운영 시스템(sqlp-judge, sqlp-archive)의 구조와 만들면서 부딪힌 문제.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%231F6F5C'/%3E%3C/svg%3E">
+<title>SQLP 스터디 운영 시스템 · 유재건</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:#F7F8F7}
+a{color:#15181C}a:hover{color:#1F6F5C}
+</style>
+</head>
+<body>
+<div style="min-height: 100vh; background: #F7F8F7; color: #15181C; font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-size: 16px; line-height: 1.8">
+
+<header style="border-bottom: 1px solid #E3E5E3">
+<nav style="max-width: 800px; margin: 0 auto; padding: 0 24px; min-height: 64px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<a href="./" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; text-decoration: none; font-weight: 600">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"></path></svg>
+홈으로
+</a>
+<span style="font-weight: 700">유재건</span>
+</nav>
+</header>
+
+<main id="top" style="max-width: 800px; margin: 0 auto; padding: 0 24px 96px">
+
+<section style="padding: 64px 0 32px">
+<p style="margin: 0; color: #5B6168">개인 프로젝트 · 2026.10 – 현재</p>
+<h1 style="margin: 12px 0 0; font-size: 38px; line-height: 1.35; letter-spacing: -0.02em">SQLP 스터디 운영 시스템</h1>
+<p style="margin: 20px 0 0; font-size: 17px; color: #3D4349">SQLP를 취득한 뒤, 스터디원 두 명과 SQL 튜닝 스터디를 시작하면서 멘토를 맡게 되었습니다. 매주 실습 문제를 내고 풀이를 확인해야 했는데, 이걸 사람이 직접 하기에는 손이 많이 갔습니다. 그래서 문제 공개부터 채점, 진행 상황 정리까지 자동으로 돌아가는 시스템을 만들었습니다.</p>
+</section>
+
+<dl style="margin: 0; padding: 24px 28px; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px 24px">
+<div><dt style="font-size: 13px; color: #5B6168">역할</dt><dd style="margin: 2px 0 0; font-weight: 600">설계 · 개발 · 운영(멘토)</dd></div>
+<div><dt style="font-size: 13px; color: #5B6168">저장소</dt><dd style="margin: 2px 0 0; font-weight: 600">sqlp-judge(비공개), sqlp-archive(공개)</dd></div>
+<div><dt style="font-size: 13px; color: #5B6168">기술</dt><dd style="margin: 2px 0 0; font-weight: 600">Python, GitHub Actions, Oracle Autonomous DB, MkDocs</dd></div>
+<div><dt style="font-size: 13px; color: #5B6168">공개 사이트</dt><dd style="margin: 2px 0 0; font-weight: 600"><a href="https://sqlp-study-2026.github.io/sqlp-archive/">sqlp-archive</a></dd></div>
+</dl>
+
+<section style="padding: 56px 0 0">
+<h2 style="margin: 0 0 16px; font-size: 24px">처음에 정한 조건</h2>
+<p style="margin: 0; color: #3D4349">만들기 전에 세 가지를 먼저 정했습니다.</p>
+<ol style="margin: 12px 0 0; padding-left: 22px; color: #3D4349; display: flex; flex-direction: column; gap: 8px">
+<li><strong>스터디원은 브라우저만 쓸 수 있어야 합니다.</strong> git이나 DB를 따로 설치하지 않아도 참여할 수 있어야 했습니다.</li>
+<li><strong>운영비는 0원이어야 합니다.</strong> 개인이 꾸리는 스터디라 서버 비용을 계속 낼 수는 없었습니다.</li>
+<li><strong>제출한 SQL과 정답은 공개하지 않습니다.</strong> 다만 각자 얼마나 진행했는지와 쓴 글은 함께 볼 수 있게 하고 싶었습니다.</li>
+</ol>
+<p style="margin: 16px 0 0; color: #3D4349">그래서 GitHub의 이슈와 Actions, Oracle Cloud의 무료 DB를 조합하기로 했습니다. 저장소는 채점 기록을 담는 비공개 저장소(sqlp-judge)와, 공개해도 되는 기록만 모은 공개 저장소(sqlp-archive)로 나눴습니다.</p>
+</section>
+
+<section style="padding: 56px 0 0">
+<h2 style="margin: 0 0 16px; font-size: 24px">어떻게 돌아가나요</h2>
+<div style="overflow-x: auto">
+<div style="position: relative; width: 752px; height: 560px; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 14px; font-size: 13px; line-height: 1.35">
+
+<div style="position: absolute; left: 184px; top: 40px; width: 344px; height: 488px; box-sizing: border-box; border: 1px dashed #B9BEB9; border-radius: 12px; background: #F7F8F7"></div>
+<div style="position: absolute; left: 592px; top: 40px; width: 144px; height: 328px; box-sizing: border-box; border: 1px dashed #D9A39A; border-radius: 12px; background: #FBF4F2"></div>
+<div style="position: absolute; left: 200px; top: 48px; font-weight: 700; color: #4A5056">GitHub</div>
+<div style="position: absolute; left: 608px; top: 48px; font-weight: 700; color: #8F3A2C">Oracle Cloud</div>
+
+<svg width="55" height="8" viewBox="0 0 55 8" preserveAspectRatio="none" style="position: absolute; left: 144px; top: 124px; width: 55px; height: 8px; overflow: visible; fill: none; stroke: #8A9096; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-1" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A9096" stroke="none" style="stroke: none; fill: #8A9096; fill: context-stroke"/></marker></defs><path d="M 0 4 L 51 4" marker-end="url(#dc-arrow-head-filled-1)"></path></svg>
+<svg width="71" height="8" viewBox="0 0 71 8" preserveAspectRatio="none" style="position: absolute; left: 320px; top: 124px; width: 71px; height: 8px; overflow: visible; fill: none; stroke: #8A9096; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-2" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A9096" stroke="none" style="stroke: none; fill: #8A9096; fill: context-stroke"/></marker></defs><path d="M 0 4 L 67 4" marker-end="url(#dc-arrow-head-filled-2)"></path></svg>
+<svg width="95" height="8" viewBox="0 0 95 8" preserveAspectRatio="none" style="position: absolute; left: 512px; top: 124px; width: 95px; height: 8px; overflow: visible; fill: none; stroke: #8A9096; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-3" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A9096" stroke="none" style="stroke: none; fill: #8A9096; fill: context-stroke"/></marker></defs><path d="M 0 4 L 91 4" marker-end="url(#dc-arrow-head-filled-3)"></path></svg>
+<svg width="8" height="79" viewBox="0 0 8 79" preserveAspectRatio="none" style="position: absolute; left: 428px; top: 176px; width: 8px; height: 79px; overflow: visible; fill: none; stroke: #8A9096; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-4" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A9096" stroke="none" style="stroke: none; fill: #8A9096; fill: context-stroke"/></marker></defs><path d="M 4 0 L 4 75" marker-end="url(#dc-arrow-head-filled-4)"></path></svg>
+<svg width="8" height="79" viewBox="0 0 8 79" preserveAspectRatio="none" style="position: absolute; left: 468px; top: 177px; width: 8px; height: 79px; overflow: visible; fill: none; stroke: #8A9096; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 6 6"><defs><marker id="dc-arrow-head-filled-5" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A9096" stroke="none" style="stroke: none; fill: #8A9096; fill: context-stroke"/></marker></defs><path d="M 4 79 L 4 4" marker-end="url(#dc-arrow-head-filled-5)"></path></svg>
+<svg width="55" height="8" viewBox="0 0 55 8" preserveAspectRatio="none" style="position: absolute; left: 144px; top: 300px; width: 55px; height: 8px; overflow: visible; fill: none; stroke: #8A9096; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-6" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A9096" stroke="none" style="stroke: none; fill: #8A9096; fill: context-stroke"/></marker></defs><path d="M 0 4 L 51 4" marker-end="url(#dc-arrow-head-filled-6)"></path></svg>
+<svg width="71" height="8" viewBox="0 0 71 8" preserveAspectRatio="none" style="position: absolute; left: 320px; top: 300px; width: 71px; height: 8px; overflow: visible; fill: none; stroke: #8A9096; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-7" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A9096" stroke="none" style="stroke: none; fill: #8A9096; fill: context-stroke"/></marker></defs><path d="M 0 4 L 67 4" marker-end="url(#dc-arrow-head-filled-7)"></path></svg>
+<svg width="8" height="63" viewBox="0 0 8 63" preserveAspectRatio="none" style="position: absolute; left: 448px; top: 352px; width: 8px; height: 63px; overflow: visible; fill: none; stroke: #8A9096; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-8" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A9096" stroke="none" style="stroke: none; fill: #8A9096; fill: context-stroke"/></marker></defs><path d="M 4 0 L 4 59" marker-end="url(#dc-arrow-head-filled-8)"></path></svg>
+<svg width="247" height="8" viewBox="0 0 247 8" preserveAspectRatio="none" style="position: absolute; left: 144px; top: 460px; width: 247px; height: 8px; overflow: visible; fill: none; stroke: #8A9096; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-9" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#8A9096" stroke="none" style="stroke: none; fill: #8A9096; fill: context-stroke"/></marker></defs><path d="M 0 4 L 243 4" marker-end="url(#dc-arrow-head-filled-9)"></path></svg>
+<svg width="8" height="80" viewBox="0 0 8 80" preserveAspectRatio="none" style="position: absolute; left: 660px; top: 176px; width: 8px; height: 80px; overflow: visible; fill: none; stroke: #C9A39B; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 4 0 L 4 80"></path></svg>
+
+<div style="position: absolute; left: 24px; top: 80px; width: 120px; height: 96px; box-sizing: border-box; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 10px"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#5B6168"></rect><circle cx="16" cy="12" r="5" fill="none" stroke="#FFFFFF" stroke-width="2"></circle><path d="M7 26c1.5-5 5-7 9-7s7.5 2 9 7" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></path></svg><span><b>스터디원</b><br>SQL 제출·포스팅</span></div>
+<div style="position: absolute; left: 24px; top: 256px; width: 120px; height: 96px; box-sizing: border-box; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 10px"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#15181C"></rect><circle cx="16" cy="12" r="5" fill="none" stroke="#FFFFFF" stroke-width="2"></circle><path d="M7 26c1.5-5 5-7 9-7s7.5 2 9 7" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></path></svg><span><b>멘토</b><br>설정·리뷰·머지</span></div>
+<div style="position: absolute; left: 24px; top: 416px; width: 120px; height: 96px; box-sizing: border-box; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 10px"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#8A9096"></rect><circle cx="16" cy="12" r="5" fill="none" stroke="#FFFFFF" stroke-width="2"></circle><path d="M7 26c1.5-5 5-7 9-7s7.5 2 9 7" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></path></svg><span><b>외부 열람자</b></span></div>
+
+<div style="position: absolute; left: 200px; top: 80px; width: 120px; height: 96px; box-sizing: border-box; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 10px"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#2F55D4"></rect><path d="M10 7h9l4 4v14H10z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"></path><path d="M13 16h7M13 20h7" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></path></svg><span><b>Issue Forms</b><br>sqlp-judge</span></div>
+<div style="position: absolute; left: 392px; top: 80px; width: 120px; height: 96px; box-sizing: border-box; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 10px"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#2F55D4"></rect><circle cx="16" cy="16" r="8" fill="none" stroke="#FFFFFF" stroke-width="2"></circle><path d="M14 12.5l5 3.5-5 3.5z" fill="#FFFFFF"></path></svg><span><b>Actions</b><br>채점·진행률 계산</span></div>
+<div style="position: absolute; left: 200px; top: 256px; width: 120px; height: 96px; box-sizing: border-box; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 10px"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#6E56CF"></rect><circle cx="11" cy="9" r="2.5" fill="none" stroke="#FFFFFF" stroke-width="2"></circle><circle cx="11" cy="23" r="2.5" fill="none" stroke="#FFFFFF" stroke-width="2"></circle><circle cx="21" cy="23" r="2.5" fill="none" stroke="#FFFFFF" stroke-width="2"></circle><path d="M11 11.5v9M21 20.5v-5a4 4 0 0 0-4-4h-3" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></path></svg><span><b>포스팅 PR</b><br>sqlp-archive</span></div>
+<div style="position: absolute; left: 392px; top: 256px; width: 120px; height: 96px; box-sizing: border-box; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 10px"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#6E56CF"></rect><circle cx="16" cy="16" r="8" fill="none" stroke="#FFFFFF" stroke-width="2"></circle><path d="M14 12.5l5 3.5-5 3.5z" fill="#FFFFFF"></path></svg><span><b>Actions</b><br>검사·사이트 빌드</span></div>
+<div style="position: absolute; left: 392px; top: 416px; width: 120px; height: 96px; box-sizing: border-box; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 10px"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#1F6F5C"></rect><circle cx="16" cy="16" r="8" fill="none" stroke="#FFFFFF" stroke-width="2"></circle><ellipse cx="16" cy="16" rx="3.5" ry="8" fill="none" stroke="#FFFFFF" stroke-width="1.6"></ellipse><path d="M8 16h16" stroke="#FFFFFF" stroke-width="1.6"></path></svg><span><b>GitHub Pages</b><br>공개 사이트</span></div>
+
+<div style="position: absolute; left: 608px; top: 80px; width: 112px; height: 96px; box-sizing: border-box; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; background: #FFFFFF; border: 1px solid #E8CFC9; border-radius: 10px"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#C74634"></rect><ellipse cx="16" cy="10" rx="7" ry="3" fill="none" stroke="#FFFFFF" stroke-width="2"></ellipse><path d="M9 10v12c0 1.7 3.1 3 7 3s7-1.3 7-3V10M9 16c0 1.7 3.1 3 7 3s7-1.3 7-3" fill="none" stroke="#FFFFFF" stroke-width="2"></path></svg><span><b>Autonomous DB</b><br>Always Free</span></div>
+<div style="position: absolute; left: 608px; top: 256px; width: 112px; height: 96px; box-sizing: border-box; padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; background: #FFFFFF; border: 1px solid #E8CFC9; border-radius: 10px"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#C74634"></rect><rect x="10" y="15" width="12" height="9" rx="1.5" fill="none" stroke="#FFFFFF" stroke-width="2"></rect><path d="M12.5 15v-3a3.5 3.5 0 0 1 7 0v3" fill="none" stroke="#FFFFFF" stroke-width="2"></path></svg><span><b>DB 계정 3개</b><br>권한 분리</span></div>
+
+<div style="position: absolute; left: 524px; top: 100px; width: 72px; text-align: center; color: #5B6168">실행·채점</div>
+<div style="position: absolute; left: 340px; top: 208px; width: 80px; text-align: right; color: #5B6168">공개 데이터</div>
+<div style="position: absolute; left: 484px; top: 208px; width: 84px; color: #5B6168">재계산 요청</div>
+<div style="position: absolute; left: 464px; top: 376px; width: 72px; color: #5B6168">빌드·배포</div>
+<div style="position: absolute; left: 216px; top: 436px; width: 104px; text-align: center; color: #5B6168">공개 사이트 열람</div>
+
+</div>
+</div>
+<p style="margin: 20px 0 0; color: #3D4349">스터디원이 GitHub 이슈 양식에 SQL을 붙여 넣고 제출하면, GitHub Actions가 그 SQL을 Oracle Cloud의 DB에서 실행합니다. 결과가 정답과 같은지, 그리고 읽은 블록 수가 목표 이하인지를 보고 통과 여부를 이슈 댓글로 남깁니다.</p>
+<p style="margin: 14px 0 0; color: #3D4349">주차가 시작되면 그 주의 문제가 열리고, 스터디원마다 할 일 목록과 포스팅 초안 PR이 자동으로 만들어집니다. 스터디원은 초안에 글만 쓰면 되고, 제가 리뷰해서 머지하면 공개 사이트에 올라갑니다. 진행률도 같은 흐름으로 매번 다시 계산되어 사이트에 반영됩니다.</p>
+
+<p style="margin: 14px 0 0; color: #3D4349">모든 자동화는 비공개 저장소의 Actions에서 돌아갑니다. 채점이 끝나면 공개해도 되는 데이터만 골라 공개 저장소로 보내고, 공개 저장소는 그 데이터와 머지된 포스팅으로 사이트를 다시 만듭니다. 반대로 공개 저장소에서 포스팅이 머지되면(점선), "진행률을 다시 계산해 달라"는 요청만 보낼 수 있는 별도의 GitHub App을 통해 비공개 저장소에 알립니다.</p>
+<p style="margin: 14px 0 0; color: #3D4349">DB 계정은 일부러 셋으로 나눴습니다. 문제 데이터는 STUDY 계정이 갖고, 스터디원의 SQL은 그 테이블을 읽기만 할 수 있는 GRADER_RUN 계정으로 실행합니다. 읽은 블록 수는 실행 통계 조회 권한만 있는 GRADER_STATS 계정이 따로 읽습니다. 누가 어떤 SQL을 내더라도 데이터를 바꾸거나 다른 사람의 기록을 볼 수 없게 하려는 것이었습니다.</p>
+</section>
+
+<section style="padding: 56px 0 0">
+<h2 style="margin: 0 0 20px; font-size: 24px">만들면서 부딪힌 문제</h2>
+<div style="display: flex; flex-direction: column; gap: 16px">
+
+<article style="padding: 28px; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 14px">
+<h3 style="margin: 0 0 12px; font-size: 18px">실행 시간으로는 공정하게 채점할 수 없었습니다</h3>
+<p style="margin: 0; color: #3D4349">처음에는 SQL이 빨리 끝나면 통과시키는 방식을 생각했습니다. 그런데 같은 SQL을 여러 번 돌려 보니, 캐시에 데이터가 올라와 있는지와 그 순간 DB가 얼마나 바쁜지에 따라 실행 시간이 매번 달랐습니다. 이대로라면 같은 답을 내도 언제 냈느냐에 따라 통과와 실패가 갈릴 수 있었습니다.</p>
+<p style="margin: 12px 0 0; color: #3D4349">그래서 SQL이 읽은 블록 수(Buffers)를 기준으로 바꿨습니다. 블록 수는 실행계획이 같으면 거의 같은 값이 나오고, SQLP에서 튜닝을 평가하는 관점도 결국 "얼마나 적게 읽었는가"입니다. 실행 시간은 통과 기준에서 빼고, 너무 오래 걸리는 SQL을 끊는 제한으로만 남겼습니다.</p>
+</article>
+
+<article style="padding: 28px; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 14px">
+<h3 style="margin: 0 0 12px; font-size: 18px">로컬에서 정한 목표값이 클라우드에서 맞지 않았습니다</h3>
+<p style="margin: 0; color: #3D4349">처음에는 제 PC의 Docker Oracle에서 정답 SQL을 돌려 보고 목표 블록 수를 정했습니다. 그런데 같은 SQL을 Oracle Cloud에서 실행하니 로컬에서는 10블록이던 것이 19블록이 나왔습니다. 버전과 설정이 다른 DB라 같은 SQL도 읽는 양이 달랐던 것입니다.</p>
+<p style="margin: 12px 0 0; color: #3D4349">실제 채점은 클라우드에서 하기 때문에, 목표값은 모두 클라우드에서 잰 값으로 다시 잡았습니다. 이 일을 계기로 권한, 네트워크, 동시 제출 같은 부분도 로컬이 아닌 실제 클라우드 환경에서 하나씩 확인한 뒤에 스터디를 시작했습니다.</p>
+</article>
+
+<article style="padding: 28px; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 14px">
+<h3 style="margin: 0 0 12px; font-size: 18px">힌트가 무시됐는데도 통과로 나왔습니다</h3>
+<p style="margin: 0; color: #3D4349">한 스터디원이 FULL 힌트를 줬는데 실행계획이 전혀 바뀌지 않았다며 질문을 남겼습니다. 확인해 보니 힌트 문법이 틀려 있었습니다. Oracle은 틀린 힌트를 오류 없이 그냥 무시하는데, 마침 옵티마이저가 고른 계획이 목표를 넘어서 통과로 판정되고 있었습니다.</p>
+<p style="margin: 12px 0 0; color: #3D4349">스터디원은 의도한 방식으로 풀었다고 생각하는데 실제로는 다른 방식으로 실행된 것이라, 통과로 두면 안 된다고 판단했습니다. Oracle 19c는 실행계획 정보에 힌트가 어떻게 처리됐는지를 함께 기록해 주기 때문에, 채점할 때 이 정보를 읽어 무시된 힌트를 댓글에 보여 주고 해당 제출은 반려하도록 바꿨습니다.</p>
+<pre style="margin: 16px 0 0; padding: 16px 18px; background: #15181C; color: #E8ECEA; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; overflow-x: auto">Hint Report (identified by operation id / Query Block Name / Object Alias):
+   1 -  SEL$1 / E@SEL$1
+         E -  FULL(e employees_dept_ix)  <span style="color: #6FD3B4">← Syntax error</span></pre>
+</article>
+
+<article style="padding: 28px; background: #FFFFFF; border: 1px solid #E3E5E3; border-radius: 14px">
+<h3 style="margin: 0 0 12px; font-size: 18px">공개 사이트에 무엇을 보여 줄지 정해야 했습니다</h3>
+<p style="margin: 0; color: #3D4349">스터디원의 진행률과 글은 공개하고 싶었지만, GitHub 계정이나 제출한 SQL, 정답까지 드러나면 안 됐습니다. 그래서 공개 저장소로 보내는 데이터는 채점 저장소에서 미리 걸러서 만들고, 작성자와 리뷰어는 GitHub 계정 대신 닉네임으로만 표시했습니다.</p>
+<p style="margin: 12px 0 0; color: #3D4349">사람이 실수로 넣을 수도 있어서, 사이트를 만들 때 공개하면 안 되는 항목이 섞여 있는지 한 번 더 검사하고, 섞여 있으면 배포가 멈추도록 했습니다.</p>
+</article>
+
+</div>
+</section>
+
+<section style="padding: 56px 0 0">
+<h2 style="margin: 0 0 16px; font-size: 24px">돌아보며</h2>
+<p style="margin: 0; color: #3D4349">가장 크게 남은 건, 로컬에서 잘 되던 것도 실제 환경에서 다시 확인해야 한다는 점입니다. 채점 기준을 정할 때도 무엇이 매번 같은 값으로 측정되는지부터 확인해야 했습니다.</p>
+<p style="margin: 14px 0 0; color: #3D4349">무시된 힌트처럼 오류 없이 지나가는 문제는 사용자가 알아채기 어렵습니다. 그런 부분은 시스템이 대신 드러내 줘야 한다는 것도 이번에 배웠습니다. 스터디는 지금도 진행 중이고, 스터디원들이 실제로 쓰면서 남기는 질문을 보고 계속 고쳐 나가고 있습니다.</p>
+</section>
+
+<nav style="margin-top: 64px; padding-top: 28px; border-top: 1px solid #E3E5E3">
+<a href="./" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 600">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"></path></svg>
+홈으로
+</a>
+</nav>
+
+</main>
+</div>
+<script>
+(function(){
+  var now = new Date(), cur = now.getFullYear() * 12 + now.getMonth();
+  document.querySelectorAll('[data-since]').forEach(function(el){
+    var p = el.getAttribute('data-since').split('-');
+    var n = cur - (Number(p[0]) * 12 + Number(p[1]) - 1) + 1;
+    var y = Math.floor(n / 12), m = n % 12;
+    el.textContent = (y ? y + '년' : '') + (y && m ? ' ' : '') + (m ? m + '개월' : '');
+  });
+})();
+</script>
+</body>
+</html>
